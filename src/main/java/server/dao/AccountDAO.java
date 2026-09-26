@@ -2,19 +2,21 @@ package server.dao;
 
 import java.util.List;
 
-import common.entity.Category;
+import common.entity.Account;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.Query;
 import server.util.JPAUtil;
 
-public class CategoryDAO {
-	public boolean add(Category category) {
+public class AccountDAO {
+	public boolean add(Account a) {
+		
 		EntityTransaction tr = null;
 		
-		try (EntityManager em = JPAUtil.getEntityManager()){
+		try (EntityManager em = JPAUtil.getEntityManager()) {
 			tr = em.getTransaction();
 			tr.begin();
-			em.persist(category);
+			em.persist(a);
 			tr.commit();
 			return true;
 		} catch (Exception e) {
@@ -24,43 +26,39 @@ public class CategoryDAO {
 			e.printStackTrace();
 			return false;
 		}
-		
 	}
 	
-	
-	public boolean update(Category category) {
+	public boolean update (Account a) {
 		EntityTransaction tr = null;
-				
+		
 		try (EntityManager em = JPAUtil.getEntityManager()) {
 			tr = em.getTransaction();
 			tr.begin();
-			em.merge(category);
+			em.merge(a);
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			if(tr != null && tr.isActive())
-				tr.rollback();
 			// TODO: handle exception
+			if (tr != null && tr.isActive())
+				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
-		
 	}
 	
-	public boolean delete(int id) {
-		EntityTransaction tr = null;
+	public boolean delete (int id) {
 		
+		EntityTransaction tr = null;
 		try (EntityManager em = JPAUtil.getEntityManager()) {
 			tr = em.getTransaction();
 			tr.begin();
-			Category c = em.find(Category.class, id);
+			Account a = em.find(Account.class, id);
 			
-			if (c != null) {
-				em.remove(c);
+			if(a != null) {
+				em.remove(a);
 				tr.commit();
 				return true;
 			}
-			
 			return false;
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -71,10 +69,9 @@ public class CategoryDAO {
 		}
 	}
 	
-	public Category findById(int id) {
+	public Account findById(int id) {
 		try (EntityManager em = JPAUtil.getEntityManager()) {
-			return em.find(Category.class, id);
-			
+			return em.find(Account.class, id);
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
@@ -82,22 +79,38 @@ public class CategoryDAO {
 		}
 	}
 	
-	public List<Category> findByAll(){
-		try (EntityManager em = JPAUtil.getEntityManager()){
+	public List<Account> findByAll(){
+		try (EntityManager em = JPAUtil.getEntityManager()) {
+			return em.createQuery("SELECT a FROM Account a", Account.class).getResultList();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+			// TODO: handle exception
+		}
+	}
+	
+	public Account findByUsername(String username) {
+		
+		try (EntityManager em = JPAUtil.getEntityManager()) {
+			Query query = em.createQuery("SELECT a FROM Account a WHERE a.username = :u", Account.class);
 			
-			return em.createQuery("SELECT c FROM Category c", Category.class).getResultList();
-			
+			List list = query.setParameter("u", username).getResultList();
+			return list.isEmpty() ? null : (Account) list.get(0);
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}
+		
 	}
 	
 	public static void main(String[] args) {
-		CategoryDAO categoryDao = new CategoryDAO();
-		Category category = new Category(0,"Cà phê");
-		categoryDao.add(category);
-		categoryDao.findByAll();
+		Account a = new Account(0,"admin", "123456","NHTB", "ADMIN","0335445454", true );
+		AccountDAO aD = new AccountDAO();
+		aD.add(a);
+		aD.findByUsername("admin");
+		
+		
 	}
+	
 }
