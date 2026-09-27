@@ -89,6 +89,8 @@ public boolean add(Customer c) {
 			// TODO: handle exception
 		}
 	}
+	
+	//
 public Customer findByPhoneNumber (String phoneNumber) {
 		
 		try (EntityManager em = JPAUtil.getEntityManager()) {
