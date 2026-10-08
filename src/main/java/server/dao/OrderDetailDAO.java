@@ -18,9 +18,6 @@ public class OrderDetailDAO {
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -31,7 +28,6 @@ public class OrderDetailDAO {
 			return em.find(OrderDetail.class, id);
 			
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}
@@ -51,7 +47,6 @@ public class OrderDetailDAO {
 						;
 			
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}

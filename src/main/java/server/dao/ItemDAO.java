@@ -19,9 +19,6 @@ public boolean add(Item item) {
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -37,9 +34,6 @@ public boolean add(Item item) {
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -60,9 +54,6 @@ public boolean add(Item item) {
 			}
 			return false;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -72,19 +63,17 @@ public boolean add(Item item) {
 		try (EntityManager em = JPAUtil.getEntityManager()) {
 			return em.find(Item.class, id);
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}
 	}
 	
-	public List<Item> findByAll(){
+	public List<Item> findAll(){
 		try (EntityManager em = JPAUtil.getEntityManager()) {
 			return em.createQuery("SELECT i FROM Item i", Item.class).getResultList();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
-			// TODO: handle exception
 		}
 	}
 	public List<Item> findByCategory(int categoryId){
@@ -100,7 +89,6 @@ public boolean add(Item item) {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
-			// TODO: handle exception
 		}
 	}
 	public List<Item> findByName(String keyword){
@@ -116,21 +104,6 @@ public boolean add(Item item) {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
-			// TODO: handle exception
 		}
 	}
-	
-	public static void main(String[] args) {
-		CategoryDAO categoryDao = new CategoryDAO();
-		Item item = new Item(0, "bbb", 0.4, false, categoryDao.findById(1));
-		
-		ItemDAO iD = new ItemDAO();
-		
-		System.out.println(iD.add(item));
-		
-		System.out.println(iD.findByCategory(1));
-
-	}
-	
-
 }

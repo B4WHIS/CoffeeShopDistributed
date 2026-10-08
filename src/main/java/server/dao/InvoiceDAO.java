@@ -19,9 +19,6 @@ public class InvoiceDAO {
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -30,18 +27,16 @@ public class InvoiceDAO {
 		try (EntityManager em = JPAUtil.getEntityManager()) {
 			return em.find(Invoice.class, id);
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}
 	}
-	public List<Invoice> findByAll(){
+	public List<Invoice> findAll(){
 		try (EntityManager em = JPAUtil.getEntityManager()) {
 			return em.createQuery("SELECT i FROM Invoice i", Invoice.class).getResultList();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
-			// TODO: handle exception
 		}
 	}
 	
@@ -60,7 +55,6 @@ public class InvoiceDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return 0.0;
-			// TODO: handle exception
 		}
 	}
 	public double getMonthlyRevenue(int month, int year) {
@@ -83,7 +77,6 @@ public class InvoiceDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return 0.0;
-			// TODO: handle exception
 		}
 	}
 }

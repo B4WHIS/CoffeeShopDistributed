@@ -20,9 +20,6 @@ public class AccountDAO {
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -38,9 +35,6 @@ public class AccountDAO {
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -61,9 +55,6 @@ public class AccountDAO {
 			}
 			return false;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -73,19 +64,17 @@ public class AccountDAO {
 		try (EntityManager em = JPAUtil.getEntityManager()) {
 			return em.find(Account.class, id);
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}
 	}
 	
-	public List<Account> findByAll(){
+	public List<Account> findAll(){
 		try (EntityManager em = JPAUtil.getEntityManager()) {
 			return em.createQuery("SELECT a FROM Account a", Account.class).getResultList();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
-			// TODO: handle exception
 		}
 	}
 	
@@ -97,20 +86,9 @@ public class AccountDAO {
 			List list = query.setParameter("u", username).getResultList();
 			return list.isEmpty() ? null : (Account) list.get(0);
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}
 		
 	}
-	
-	public static void main(String[] args) {
-		Account a = new Account(0,"admin", "123456","NHTB", "ADMIN","0335445454", true );
-		AccountDAO aD = new AccountDAO();
-		aD.add(a);
-		aD.findByUsername("admin");
-		
-		
-	}
-	
 }

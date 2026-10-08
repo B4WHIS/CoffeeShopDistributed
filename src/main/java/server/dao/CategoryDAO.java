@@ -18,9 +18,6 @@ public class CategoryDAO {
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -38,9 +35,6 @@ public class CategoryDAO {
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			if(tr != null && tr.isActive())
-				tr.rollback();
-			// TODO: handle exception
 			e.printStackTrace();
 			return false;
 		}
@@ -63,9 +57,6 @@ public class CategoryDAO {
 			
 			return false;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -76,28 +67,19 @@ public class CategoryDAO {
 			return em.find(Category.class, id);
 			
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}
 	}
 	
-	public List<Category> findByAll(){
+	public List<Category> findAll(){
 		try (EntityManager em = JPAUtil.getEntityManager()){
 			
 			return em.createQuery("SELECT c FROM Category c", Category.class).getResultList();
 			
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}
-	}
-	
-	public static void main(String[] args) {
-		CategoryDAO categoryDao = new CategoryDAO();
-		Category category = new Category(0,"Cà phê");
-		categoryDao.add(category);
-		categoryDao.findByAll();
 	}
 }

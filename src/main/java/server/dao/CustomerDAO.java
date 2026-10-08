@@ -2,7 +2,6 @@ package server.dao;
 
 import java.util.List;
 
-import common.entity.Account;
 import common.entity.Customer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -21,9 +20,6 @@ public boolean add(Customer c) {
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -39,9 +35,6 @@ public boolean add(Customer c) {
 			tr.commit();
 			return true;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -62,9 +55,6 @@ public boolean add(Customer c) {
 			}
 			return false;
 		} catch (Exception e) {
-			// TODO: handle exception
-			if (tr != null && tr.isActive())
-				tr.rollback();
 			e.printStackTrace();
 			return false;
 		}
@@ -74,19 +64,17 @@ public boolean add(Customer c) {
 		try (EntityManager em = JPAUtil.getEntityManager()) {
 			return em.find(Customer.class, id);
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}
 	}
 	
-	public List<Customer> findByAll(){
+	public List<Customer> findAll(){
 		try (EntityManager em = JPAUtil.getEntityManager()) {
 			return em.createQuery("SELECT c FROM Customer c", Customer.class).getResultList();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
-			// TODO: handle exception
 		}
 	}
 	
@@ -99,7 +87,6 @@ public Customer findByPhoneNumber (String phoneNumber) {
 			List list = query.setParameter("u", phoneNumber).getResultList();
 			return list.isEmpty() ? null :  (Customer) list.get(0);
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			return null;
 		}

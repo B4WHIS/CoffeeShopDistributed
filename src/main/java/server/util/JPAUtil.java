@@ -21,12 +21,4 @@ public class JPAUtil {
 		}	
 	}
 	
-	public static void main(String[] args) {
-		EntityManager em = JPAUtil.getEntityManager();
-		System.out.println("Chay thanh cong");
-		em.close();
-		JPAUtil.close();
-		
-	}
-	
 }
