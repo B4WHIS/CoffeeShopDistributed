@@ -1,15 +1,15 @@
 package server.mapper;
 
-import common.dto.OrderDetailDto;
+import common.dto.OrderDetailDTO;
 import common.entity.Invoice;
 import common.entity.Item;
 import common.entity.OrderDetail;
 
 public interface OrderDetailMapper {
-	public default OrderDetailDto toDto(OrderDetail od) {
+	public default OrderDetailDTO toDto(OrderDetail od) {
 		if(od == null)
 			return null;
-		return new OrderDetailDto(od.getId(), 
+		return new OrderDetailDTO(od.getId(), 
 				od.getItem() != null ? od.getItem().getId() : 0, 
 				od.getItemName(), 
 				od.getUnitPrice(), 
@@ -18,7 +18,7 @@ public interface OrderDetailMapper {
 				);
 	}
 	
-	public default OrderDetail toEntity(OrderDetailDto odDto, Invoice invoice, Item item) {
+	public default OrderDetail toEntity(OrderDetailDTO odDto, Invoice invoice, Item item) {
 		if(odDto == null)
 			return null;
 		return new OrderDetail(odDto.id(), 

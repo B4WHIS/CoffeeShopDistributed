@@ -1,15 +1,15 @@
 package server.mapper;
 
-import common.dto.CategoryDto;
+import common.dto.CategoryDTO;
 import common.entity.Category;
 
 public interface CategoryMapper {
-	public default CategoryDto toDto(Category c) {
+	public default CategoryDTO toDto(Category c) {
 		if(c == null)
 			return null;
-		return new CategoryDto(c.getId(), c.getName());
+		return new CategoryDTO(c.getId(), c.getName());
 	}
-	public default Category toEntity(CategoryDto cDto) {
+	public default Category toEntity(CategoryDTO cDto) {
 		if(cDto == null)
 			return null;
 		return new Category(cDto.id(), cDto.name());

@@ -3,7 +3,7 @@ package common.dto;
 import java.io.Serializable;
 import java.util.List;
 
-public record InvoiceDto(
+public record InvoiceDTO(
 			int id,
 			int orderNumber,
 			String orderType,
@@ -18,7 +18,7 @@ public record InvoiceDto(
 			Integer customerId,
 			String customerName,
 			String customerPhone,
-			List<OrderDetailDto> orderDetails
+			List<OrderDetailDTO> orderDetails
 		) implements Serializable {
 
 }

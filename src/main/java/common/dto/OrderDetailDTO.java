@@ -2,7 +2,7 @@ package common.dto;
 
 import java.io.Serializable;
 
-public record OrderDetailDto(
+public record OrderDetailDTO(
 			int id,
 			int itemId, 
 			String itemName,

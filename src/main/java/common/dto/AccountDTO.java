@@ -2,7 +2,7 @@ package common.dto;
 
 import java.io.Serializable;
 
-public record AccountDto(
+public record AccountDTO(
 		int id,
 		String username,
 		String fullName,

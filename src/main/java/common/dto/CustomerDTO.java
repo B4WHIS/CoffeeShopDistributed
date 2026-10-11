@@ -2,7 +2,7 @@ package common.dto;
 
 import java.io.Serializable;
 
-public record CustomerDto(
+public record CustomerDTO(
 			int id,
 			String phoneNumber,
 			String fullName,

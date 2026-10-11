@@ -3,8 +3,8 @@ package server.mapper;
 import java.util.ArrayList;
 import java.util.List;
 
-import common.dto.InvoiceDto;
-import common.dto.OrderDetailDto;
+import common.dto.InvoiceDTO;
+import common.dto.OrderDetailDTO;
 import common.entity.Account;
 import common.entity.Customer;
 import common.entity.Invoice;
@@ -12,17 +12,17 @@ import common.entity.OrderDetail;
 
 public interface InvoiceMapper {
 	
-	public default InvoiceDto toDto(Invoice i) {
+	public default InvoiceDTO toDto(Invoice i) {
 		
 		if (i == null) {
 			return null;
 		}
 		
-		List<OrderDetailDto> details = new ArrayList<OrderDetailDto>();
+		List<OrderDetailDTO> details = new ArrayList<OrderDetailDTO>();
 	
 		if (i.getOrderDetails() != null) {
 			for (OrderDetail od : i.getOrderDetails()) {
-				OrderDetailDto addOd = new OrderDetailDto(
+				OrderDetailDTO addOd = new OrderDetailDTO(
 						od.getId(), 
 						od.getItem() != null ? od.getItem().getId() : 0, 
 						od.getItemName(), od.getUnitPrice(), 
@@ -33,7 +33,7 @@ public interface InvoiceMapper {
 		
 
 		
-		return new InvoiceDto(i.getId(), i.getOrderNumber(), i.getOrderType(), i.getCreatedAt(), i.getSubTotalAmount(), i.getDiscountAmount(), i.getTotalAmount(), i.getPaymentMethod(), i.getStatus(), 
+		return new InvoiceDTO(i.getId(), i.getOrderNumber(), i.getOrderType(), i.getCreatedAt(), i.getSubTotalAmount(), i.getDiscountAmount(), i.getTotalAmount(), i.getPaymentMethod(), i.getStatus(), 
 				i.getAccount() != null ? i.getAccount().getId() : 0, 
 				i.getAccount() != null ? i.getAccount().getFullName() : "",
 				i.getCustomer() != null ? i.getCustomer().getId() : null, 
@@ -44,7 +44,7 @@ public interface InvoiceMapper {
 				);
 	}
 	
-	public default Invoice toEntity(InvoiceDto iDto, Account a, Customer c) {
+	public default Invoice toEntity(InvoiceDTO iDto, Account a, Customer c) {
 		if(iDto == null)
 			return null;
 		
