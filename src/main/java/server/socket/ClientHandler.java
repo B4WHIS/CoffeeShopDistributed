@@ -1,0 +1,104 @@
+package server.socket;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.util.List;
+
+import common.dto.AccountDTO;
+import common.dto.CategoryDTO;
+import common.dto.CustomerDTO;
+import common.dto.InvoiceDTO;
+import common.dto.ItemDTO;
+import common.network.Request;
+import common.network.Response;
+import server.serviceimpl.AccountServiceImpl;
+import server.serviceimpl.CategoryServiceImpl;
+import server.serviceimpl.CustomerServiceImpl;
+import server.serviceimpl.InvoiceServiceImpl;
+import server.serviceimpl.ItemServiceImpl;
+
+public class ClientHandler implements Runnable{
+
+	Socket socket;
+	ObjectOutputStream out;
+	ObjectInputStream in;
+	
+	private final AccountServiceImpl accountServiceImpl = new AccountServiceImpl();
+	private final CategoryServiceImpl categoryServiceImpl = new CategoryServiceImpl();
+	private final ItemServiceImpl itemServiceImpl = new ItemServiceImpl();
+	private final CustomerServiceImpl customerServiceImpl = new CustomerServiceImpl();
+	private final InvoiceServiceImpl invoiceServiceImpl = new InvoiceServiceImpl();
+	
+	public ClientHandler(Socket socket) {
+		this.socket = socket;
+	}
+
+	@Override
+	public void run() {
+		try {
+			out = new ObjectOutputStream(socket.getOutputStream());
+			out.flush();
+			in = new ObjectInputStream(socket.getInputStream());
+			while (true) {
+				Request req = (Request) in.readObject();
+				Response res = handleRequest(req);
+				out.writeObject(res);
+				out.flush();
+			}
+		} catch (Exception e) {
+			try {
+				socket.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+		}
+			
+	}
+
+	private Response handleRequest(Request req) {
+		switch (req.action()) {
+		case "LOGIN": {
+			String[] creds = (String[]) req.data();
+			AccountDTO acc = accountServiceImpl.login(creds[0], creds[1]);
+			if(acc != null)
+				return new Response(true, "Đăng nhập thành công", acc);
+			return new Response(false, "Sai tài khoản hoặc mật khẩu", null);
+		}
+		case "GET_ALL_CATEGORIES": {
+			List<CategoryDTO> list = categoryServiceImpl.getAll();
+			return new Response(true, "Thành công", list);
+		}
+		case "GET_ALL_ITEMS": {
+			List<ItemDTO> list = itemServiceImpl.getAll();
+			return new Response(true, "Thành công", list);
+		}
+		case "GET_ITEMS_BY_CATEGORY":{
+			int catId = (int) req.data();
+			List<ItemDTO> list = itemServiceImpl.getByCategory(catId);
+			return new Response(true, "Thành công", list);
+		}
+		case "FIND_CUSTOMER_BY_PHONE":{
+			String phone = (String) req.data();
+			CustomerDTO cus = customerServiceImpl.getByPhoneNumber(phone);
+			if(cus != null)
+				return new Response(true, "Thành công", cus);
+			return new Response(false, "Không tìm thấy Khách hàng", null);
+		}
+		case "CREATE_INVOICE":{
+			InvoiceDTO dto = (InvoiceDTO) req.data();
+			boolean invoice = invoiceServiceImpl.createInvoice(dto);
+			if(invoice)
+				return new Response(true, "Thành công", invoice);
+			return new Response(false, "Thất bại", null);
+		}
+		default:
+			return new Response(false, "Yêu cầu không hợp lệ: " + req.action(), null);
+		}
+		
+	}
+
+}
