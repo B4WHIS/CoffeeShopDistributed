@@ -35,7 +35,7 @@ public class SocketClient {
 		return instance;
 	}
 
-	public synchronized Response sendRequest(Request req) throws IOException, ClassNotFoundException {
+	public synchronized Response sendRequest(Request req) {
 		try {
 			out.writeObject(req);
 			out.flush();
