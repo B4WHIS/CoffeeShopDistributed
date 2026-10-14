@@ -10,11 +10,12 @@ import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -31,9 +32,6 @@ import javax.swing.table.DefaultTableModel;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 import client.network.SocketClient;
 import common.dto.AccountDTO;
 import common.dto.CategoryDTO;
@@ -44,31 +42,20 @@ import common.dto.OrderDetailDTO;
 import common.network.Request;
 import common.network.Response;
 
-/**
- * Giao diện bán hàng chính (POS) cho nhân viên thu ngân.
- * Kết nối mạng phân tán Socket TCP/IP với Server.
- */
 public class MainFrame extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
-	// Thông tin tài khoản thu ngân đang đăng nhập
 	private AccountDTO currentUser;
-
-	// Khách hàng hiện tại (nếu có tìm kiếm theo SĐT)
 	private CustomerDTO currentCustomer;
-
-	// Danh sách các món đang được chọn trong giỏ hàng
 	private List<CartItem> cartItems = new ArrayList<>();
-
-	// Định dạng tiền tệ VNĐ
 	private final DecimalFormat df = new DecimalFormat("#,##0 VNĐ");
 
-	// Các thành phần giao diện cột trái (Thực đơn đồ uống)
+	// Cột trái: Thực đơn
 	private JPanel pnlCategoryButtons;
 	private JPanel pnlItemGrid;
 
-	// Các thành phần giao diện cột phải (Hóa đơn tính tiền)
+	// Cột phải: Hóa đơn
 	private JTextField txtCustomerPhone;
 	private JLabel lblCustomerInfo;
 	private JTable tblCart;
@@ -76,9 +63,7 @@ public class MainFrame extends JFrame {
 	private JLabel lblTotalAmount;
 	private JButton btnCheckout;
 
-	/**
-	 * Lớp nội bộ đại diện cho từng dòng món trong giỏ hàng
-	 */
+	// DTO phụ lưu món trong giỏ hàng
 	private static class CartItem {
 		ItemDTO item;
 		int quantity;
@@ -97,51 +82,66 @@ public class MainFrame extends JFrame {
 		this.currentUser = currentUser;
 
 		initUI();
-
-		// Nạp dữ liệu ban đầu từ Server qua Socket
 		loadCategories();
-		loadItems(null); // Ban đầu hiển thị tất cả món
+		loadItems(null);
 	}
 
+	// Khởi tạo khung giao diện
 	private void initUI() {
-		setTitle("Hệ Thống Bán Hàng Quán Cà Phê - Coffee Shop POS");
+		setTitle("Hệ Thống Bán Hàng Trà & Cà Phê - Heritage Tea & Coffee POS");
 		setSize(1200, 750);
 		setMinimumSize(new Dimension(1000, 650));
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		// Layout chính sử dụng BorderLayout
-		JPanel mainPanel = new JPanel(new BorderLayout(0, 0));
-
-		// 1. Header Panel (Phía trên)
+		JPanel mainPanel = new JPanel(new BorderLayout());
 		mainPanel.add(createHeaderPanel(), BorderLayout.NORTH);
-
-		// 2. Body Panel (Chia 2 cột Trái - Phải)
 		mainPanel.add(createBodyPanel(), BorderLayout.CENTER);
 
 		setContentPane(mainPanel);
 	}
 
-	/**
-	 * Tạo thanh tiêu đề (Header): Tên quán, thông tin thu ngân, nút đăng xuất
-	 */
+	// Thanh tiêu đề phía trên
 	private JPanel createHeaderPanel() {
 		JPanel headerPanel = new JPanel(new BorderLayout());
-		headerPanel.setBackground(new Color(44, 62, 80)); // Màu xanh đen đậm sang trọng
+		headerPanel.setBackground(new Color(12, 90, 55));
 		headerPanel.setPreferredSize(new Dimension(0, 60));
 		headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-		// Tiêu đề quán cà phê
-		JLabel lblStoreTitle = new JLabel("COFFEE SHOP POS SYSTEM");
+		JLabel lblStoreTitle = new JLabel("HERITAGE TEA & COFFEE - POS SYSTEM");
 		lblStoreTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
 		lblStoreTitle.setForeground(Color.WHITE);
 
-		// Thông tin nhân viên & nút đăng xuất ở góc phải
 		JPanel rightHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
 		rightHeader.setOpaque(false);
 
-		String cashierName = (currentUser != null && currentUser.fullName() != null) ? currentUser.fullName() : "Chưa xác định";
+		String cashierName = (currentUser != null && currentUser.fullName() != null) ? currentUser.fullName() : "N/A";
 		String cashierRole = (currentUser != null && currentUser.role() != null) ? currentUser.role() : "CASHIER";
+
+		// Các tính năng quản trị dành riêng cho vai trò ADMIN
+		if (currentUser != null && "ADMIN".equalsIgnoreCase(currentUser.role())) {
+			JButton btnRevenue = new JButton("Báo cáo Doanh thu");
+			btnRevenue.setFont(new Font("Segoe UI", Font.BOLD, 12));
+			btnRevenue.setBackground(new Color(52, 152, 219));
+			btnRevenue.setForeground(Color.WHITE);
+			btnRevenue.setFocusPainted(false);
+			btnRevenue.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			btnRevenue.addActionListener(e -> new RevenueDialog(this).setVisible(true));
+
+			JButton btnMenu = new JButton("Quản lý Thực đơn");
+			btnMenu.setFont(new Font("Segoe UI", Font.BOLD, 12));
+			btnMenu.setBackground(new Color(26, 188, 156));
+			btnMenu.setForeground(Color.WHITE);
+			btnMenu.setFocusPainted(false);
+			btnMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			btnMenu.addActionListener(e -> new MenuManagementDialog(this, () -> {
+				loadCategories();
+				loadItems(null);
+			}).setVisible(true));
+
+			rightHeader.add(btnRevenue);
+			rightHeader.add(btnMenu);
+		}
 
 		JLabel lblUserInfo = new JLabel("Nhân viên: " + cashierName + " - Vai trò: [" + cashierRole + "]");
 		lblUserInfo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -149,11 +149,10 @@ public class MainFrame extends JFrame {
 
 		JButton btnLogout = new JButton("Đăng xuất");
 		btnLogout.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnLogout.setBackground(new Color(231, 76, 60)); // Màu đỏ nhạt
+		btnLogout.setBackground(new Color(231, 76, 60));
 		btnLogout.setForeground(Color.WHITE);
 		btnLogout.setFocusPainted(false);
 		btnLogout.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
 		btnLogout.addActionListener(e -> handleLogout());
 
 		rightHeader.add(lblUserInfo);
@@ -165,20 +164,15 @@ public class MainFrame extends JFrame {
 		return headerPanel;
 	}
 
-	/**
-	 * Tạo vùng thân chính chia làm 2 cột:
-	 * - Cột trái (60%): Danh mục & Lưới thực đơn món
-	 * - Cột phải (40%): Thông tin khách hàng, bảng giỏ hàng, thanh toán
-	 */
+	// Bố cục thân màn hình chia 2 cột
 	private JPanel createBodyPanel() {
 		JPanel bodyPanel = new JPanel(new BorderLayout());
 
 		JPanel leftMenuPanel = createMenuPanel();
 		JPanel rightOrderPanel = createOrderPanel();
 
-		// Sử dụng JSplitPane để chia tỷ lệ 60% - 40% linh hoạt
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftMenuPanel, rightOrderPanel);
-		splitPane.setResizeWeight(0.6); // 60% cho bên trái
+		splitPane.setResizeWeight(0.6);
 		splitPane.setDividerLocation(720);
 		splitPane.setContinuousLayout(true);
 		splitPane.setBorder(null);
@@ -187,14 +181,12 @@ public class MainFrame extends JFrame {
 		return bodyPanel;
 	}
 
-	/**
-	 * Cột trái (60%): Thực đơn món & Lọc danh mục
-	 */
+	// Cột thực đơn món
 	private JPanel createMenuPanel() {
 		JPanel panel = new JPanel(new BorderLayout(0, 8));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
 
-		// --- 1. Vùng nút bấm lọc Danh mục (Phía trên) ---
+		// Thanh lọc danh mục
 		JPanel topCatContainer = new JPanel(new BorderLayout());
 		topCatContainer.setBorder(BorderFactory.createTitledBorder("Danh mục món"));
 
@@ -208,9 +200,9 @@ public class MainFrame extends JFrame {
 		topCatContainer.add(scrollCategories, BorderLayout.CENTER);
 		panel.add(topCatContainer, BorderLayout.NORTH);
 
-		// --- 2. Vùng lưới hiển thị các món (Ở giữa) ---
+		// Lưới hiển thị danh sách món
 		JPanel itemsContainer = new JPanel(new BorderLayout());
-		itemsContainer.setBorder(BorderFactory.createTitledBorder("Danh sách thực đơn (Click để chọn món)"));
+		itemsContainer.setBorder(BorderFactory.createTitledBorder("Danh sách thực đơn"));
 
 		pnlItemGrid = new JPanel();
 		pnlItemGrid.setBackground(new Color(245, 245, 245));
@@ -225,14 +217,12 @@ public class MainFrame extends JFrame {
 		return panel;
 	}
 
-	/**
-	 * Cột phải (40%): Hóa đơn tính tiền, khách hàng tích điểm, nút thanh toán
-	 */
+	// Cột hóa đơn tính tiền
 	private JPanel createOrderPanel() {
 		JPanel panel = new JPanel(new BorderLayout(0, 8));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 10));
 
-		// --- 1. Khung tìm kiếm khách hàng tích điểm (Phía trên) ---
+		// Tìm kiếm khách hàng tích điểm
 		JPanel pnlCustomer = new JPanel();
 		pnlCustomer.setLayout(new BoxLayout(pnlCustomer, BoxLayout.Y_AXIS));
 		pnlCustomer.setBorder(BorderFactory.createTitledBorder("Khách hàng tích điểm"));
@@ -257,13 +247,12 @@ public class MainFrame extends JFrame {
 		pnlCustomer.add(pnlPhoneInput);
 		pnlCustomer.add(lblCustomerInfo);
 
-		// Bắt sự kiện tìm khách hàng
 		btnFindCustomer.addActionListener(e -> handleFindCustomer());
 		txtCustomerPhone.addActionListener(e -> handleFindCustomer());
 
 		panel.add(pnlCustomer, BorderLayout.NORTH);
 
-		// --- 2. Bảng hiển thị các món trong giỏ hàng (Ở giữa) ---
+		// Bảng chi tiết hóa đơn
 		JPanel pnlTableWrapper = new JPanel(new BorderLayout(0, 5));
 		pnlTableWrapper.setBorder(BorderFactory.createTitledBorder("Chi tiết hóa đơn"));
 
@@ -273,7 +262,7 @@ public class MainFrame extends JFrame {
 
 			@Override
 			public boolean isCellEditable(int row, int column) {
-				return false; // Không cho chỉnh sửa trực tiếp trên bảng
+				return false;
 			}
 		};
 
@@ -282,7 +271,6 @@ public class MainFrame extends JFrame {
 		tblCart.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		tblCart.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
 
-		// Căn giữa số lượng, căn phải đơn giá và thành tiền
 		DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
 		rightRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
 		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
@@ -295,7 +283,7 @@ public class MainFrame extends JFrame {
 		JScrollPane scrollTable = new JScrollPane(tblCart);
 		pnlTableWrapper.add(scrollTable, BorderLayout.CENTER);
 
-		// Thanh nút phụ: Tăng, Giảm, Xóa món khỏi giỏ
+		// Nút thao tác trên giỏ hàng
 		JPanel pnlCartActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
 		JButton btnIncrease = new JButton("+");
 		JButton btnDecrease = new JButton("-");
@@ -315,7 +303,7 @@ public class MainFrame extends JFrame {
 
 		panel.add(pnlTableWrapper, BorderLayout.CENTER);
 
-		// --- 3. Khung tổng tiền và nút bấm THANH TOÁN (Phía dưới) ---
+		// Khung tổng tiền và thanh toán
 		JPanel pnlCheckout = new JPanel(new BorderLayout(10, 10));
 		pnlCheckout.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createTitledBorder("Thanh toán"),
@@ -327,7 +315,7 @@ public class MainFrame extends JFrame {
 
 		lblTotalAmount = new JLabel("0 VNĐ");
 		lblTotalAmount.setFont(new Font("Segoe UI", Font.BOLD, 22));
-		lblTotalAmount.setForeground(new Color(192, 57, 43)); // Màu đỏ nổi bật
+		lblTotalAmount.setForeground(new Color(192, 57, 43));
 		lblTotalAmount.setHorizontalAlignment(SwingConstants.RIGHT);
 
 		pnlTotalRow.add(lblTotalTitle, BorderLayout.WEST);
@@ -335,12 +323,11 @@ public class MainFrame extends JFrame {
 
 		btnCheckout = new JButton("THANH TOÁN");
 		btnCheckout.setFont(new Font("Segoe UI", Font.BOLD, 18));
-		btnCheckout.setBackground(new Color(39, 174, 96)); // Màu xanh lá cây thanh toán
+		btnCheckout.setBackground(new Color(39, 174, 96));
 		btnCheckout.setForeground(Color.WHITE);
 		btnCheckout.setPreferredSize(new Dimension(0, 50));
 		btnCheckout.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		btnCheckout.setFocusPainted(false);
-
 		btnCheckout.addActionListener(e -> handleCheckout());
 
 		pnlCheckout.add(pnlTotalRow, BorderLayout.NORTH);
@@ -351,13 +338,10 @@ public class MainFrame extends JFrame {
 		return panel;
 	}
 
-	/**
-	 * Nạp danh mục từ Server qua Socket bằng lệnh "GET_ALL_CATEGORIES"
-	 */
+	// Tải danh mục món từ Server qua Socket
 	public void loadCategories() {
 		pnlCategoryButtons.removeAll();
 
-		// Nút "Tất cả" luôn xuất hiện đầu tiên
 		JButton btnAll = new JButton("Tất cả");
 		btnAll.setFont(new Font("Segoe UI", Font.BOLD, 13));
 		btnAll.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -365,7 +349,6 @@ public class MainFrame extends JFrame {
 		pnlCategoryButtons.add(btnAll);
 
 		try {
-			// Gửi yêu cầu qua SocketClient
 			Response res = SocketClient.getInstance().sendRequest(new Request("GET_ALL_CATEGORIES", null));
 			if (res != null && res.success() && res.data() != null) {
 				@SuppressWarnings("unchecked")
@@ -379,18 +362,14 @@ public class MainFrame extends JFrame {
 				}
 			}
 		} catch (Exception e) {
-			System.err.println("Lỗi khi tải danh mục: " + e.getMessage());
+			e.printStackTrace();
 		}
 
 		pnlCategoryButtons.revalidate();
 		pnlCategoryButtons.repaint();
 	}
 
-	/**
-	 * Nạp các món đồ uống lên vùng lưới hiển thị.
-	 * 
-	 * @param categoryId nếu null thì nạp tất cả, ngược lại lọc theo id danh mục
-	 */
+	// Tải danh sách món theo danh mục (hoặc tất cả nếu categoryId = null)
 	public void loadItems(Integer categoryId) {
 		pnlItemGrid.removeAll();
 
@@ -412,7 +391,6 @@ public class MainFrame extends JFrame {
 					lblEmpty.setFont(new Font("Segoe UI", Font.ITALIC, 14));
 					pnlItemGrid.add(lblEmpty);
 				} else {
-					// Hiển thị dạng lưới 3 cột
 					pnlItemGrid.setLayout(new GridLayout(0, 3, 10, 10));
 					pnlItemGrid.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -435,24 +413,30 @@ public class MainFrame extends JFrame {
 		pnlItemGrid.repaint();
 	}
 
-	/**
-	 * Tạo thẻ hiển thị (Card) cho từng món trong lưới thực đơn
-	 */
+	// Thẻ hiển thị từng món kèm ảnh thumbnail
 	private JPanel createItemCard(ItemDTO item) {
 		JPanel card = new JPanel(new BorderLayout(5, 6));
 		card.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-				BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+				BorderFactory.createLineBorder(new Color(215, 215, 215), 1),
+				BorderFactory.createEmptyBorder(6, 6, 6, 6)));
 		card.setBackground(Color.WHITE);
 
-		// Tên món
-		JLabel lblName = new JLabel("<html><center><b>" + item.itemName() + "</b></center></html>", SwingConstants.CENTER);
-		lblName.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		// Ảnh đồ uống co giãn đẹp mắt
+		JLabel lblImage = new JLabel(ImageHelper.getItemIcon(item.itemName(), 150, 95), SwingConstants.CENTER);
 
-		// Đơn giá
+		// Khung tên và giá món
+		JPanel pnlInfo = new JPanel(new GridLayout(2, 1, 0, 2));
+		pnlInfo.setOpaque(false);
+
+		JLabel lblName = new JLabel("<html><center><b>" + item.itemName() + "</b></center></html>", SwingConstants.CENTER);
+		lblName.setFont(new Font("Segoe UI", Font.BOLD, 13));
+
 		JLabel lblPrice = new JLabel(df.format(item.price()), SwingConstants.CENTER);
 		lblPrice.setFont(new Font("Segoe UI", Font.BOLD, 13));
-		lblPrice.setForeground(new Color(211, 84, 0)); // Màu cam nâu bắt mắt
+		lblPrice.setForeground(new Color(211, 84, 0));
+
+		pnlInfo.add(lblName);
+		pnlInfo.add(lblPrice);
 
 		// Nút chọn món
 		JButton btnAdd = new JButton(item.isAvailable() ? "Thêm vào giỏ" : "Hết hàng");
@@ -461,11 +445,10 @@ public class MainFrame extends JFrame {
 		btnAdd.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		btnAdd.addActionListener(e -> addItemToCart(item));
 
-		card.add(lblName, BorderLayout.NORTH);
-		card.add(lblPrice, BorderLayout.CENTER);
+		card.add(lblImage, BorderLayout.NORTH);
+		card.add(pnlInfo, BorderLayout.CENTER);
 		card.add(btnAdd, BorderLayout.SOUTH);
 
-		// Cho phép click trực tiếp vào ô thẻ để thêm món
 		if (item.isAvailable()) {
 			card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			card.addMouseListener(new MouseAdapter() {
@@ -479,11 +462,8 @@ public class MainFrame extends JFrame {
 		return card;
 	}
 
-	/**
-	 * Thêm món được click vào giỏ hàng
-	 */
+	// Thêm món vào giỏ hàng
 	private void addItemToCart(ItemDTO item) {
-		// Kiểm tra nếu món đã có thì tăng số lượng
 		boolean found = false;
 		for (CartItem cartItem : cartItems) {
 			if (cartItem.item.id() == item.id()) {
@@ -493,7 +473,6 @@ public class MainFrame extends JFrame {
 			}
 		}
 
-		// Nếu chưa có thì thêm mới vào giỏ
 		if (!found) {
 			cartItems.add(new CartItem(item, 1));
 		}
@@ -501,9 +480,7 @@ public class MainFrame extends JFrame {
 		refreshCartTable();
 	}
 
-	/**
-	 * Thay đổi số lượng món được chọn trong bảng giỏ hàng (+1 hoặc -1)
-	 */
+	// Tăng / giảm số lượng món trong giỏ
 	private void modifySelectedItemQuantity(int delta) {
 		int selectedRow = tblCart.getSelectedRow();
 		if (selectedRow == -1) {
@@ -521,9 +498,7 @@ public class MainFrame extends JFrame {
 		refreshCartTable();
 	}
 
-	/**
-	 * Xóa món đang chọn khỏi giỏ hàng
-	 */
+	// Xóa món khỏi giỏ hàng
 	private void removeSelectedItem() {
 		int selectedRow = tblCart.getSelectedRow();
 		if (selectedRow == -1) {
@@ -535,9 +510,7 @@ public class MainFrame extends JFrame {
 		refreshCartTable();
 	}
 
-	/**
-	 * Hủy toàn bộ đơn hàng hiện tại
-	 */
+	// Hủy đơn hàng
 	private void clearCart() {
 		if (cartItems.isEmpty()) return;
 
@@ -552,9 +525,7 @@ public class MainFrame extends JFrame {
 		}
 	}
 
-	/**
-	 * Cập nhật lại giao diện bảng giỏ hàng và tổng tiền
-	 */
+	// Cập nhật lại dữ liệu bảng giỏ hàng và tổng tiền
 	private void refreshCartTable() {
 		cartTableModel.setRowCount(0);
 
@@ -574,9 +545,7 @@ public class MainFrame extends JFrame {
 		lblTotalAmount.setText(df.format(totalAmount));
 	}
 
-	/**
-	 * Tìm kiếm khách hàng theo số điện thoại qua Socket
-	 */
+	// Tìm khách hàng theo SĐT qua Socket
 	private void handleFindCustomer() {
 		String phone = txtCustomerPhone.getText().trim();
 		if (phone.isEmpty()) {
@@ -589,7 +558,7 @@ public class MainFrame extends JFrame {
 			if (res != null && res.success() && res.data() != null) {
 				currentCustomer = (CustomerDTO) res.data();
 				lblCustomerInfo.setText("Khách: " + currentCustomer.fullName() + " (" + currentCustomer.memberRank() + " - " + currentCustomer.accumulatedPoints() + " điểm)");
-				lblCustomerInfo.setForeground(new Color(39, 174, 96)); // Màu xanh báo tìm thấy
+				lblCustomerInfo.setForeground(new Color(39, 174, 96));
 			} else {
 				currentCustomer = null;
 				lblCustomerInfo.setText("Không tìm thấy khách hàng! (Tính là khách vãng lai)");
@@ -600,9 +569,7 @@ public class MainFrame extends JFrame {
 		}
 	}
 
-	/**
-	 * Xử lý sự kiện nhấn nút THANH TOÁN: Gửi hóa đơn thực tế qua Socket lưu vào CSDL
-	 */
+	// Thanh toán và lưu hóa đơn qua Socket
 	private void handleCheckout() {
 		if (cartItems.isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Giỏ hàng đang trống! Vui lòng chọn món trước khi thanh toán.", "Thông báo", JOptionPane.WARNING_MESSAGE);
@@ -619,11 +586,11 @@ public class MainFrame extends JFrame {
 				"Xác nhận thanh toán đơn hàng:\n" +
 				"- Khách hàng: " + customerText + "\n" +
 				"- Tổng số lượng món: " + cartItems.size() + "\n" +
-				"- Tổng tiền: " + df.format(total) + "\n\nTiến hành lưu và in hóa đơn?",
+				"- Tổng tiền: " + df.format(total) + "\n\nTiến hành lưu hóa đơn?",
 				"Xác nhận thanh toán", JOptionPane.YES_NO_OPTION);
 
 		if (confirm == JOptionPane.YES_OPTION) {
-			// 1. Duyệt cartItems, tạo danh sách List<OrderDetailDTO>
+			// Tạo danh sách chi tiết hóa đơn
 			List<OrderDetailDTO> orderDetails = new ArrayList<>();
 			for (CartItem ci : cartItems) {
 				OrderDetailDTO detail = new OrderDetailDTO(
@@ -637,7 +604,7 @@ public class MainFrame extends JFrame {
 				orderDetails.add(detail);
 			}
 
-			// 2. Tạo đối tượng InvoiceDTO chứa thông tin thu ngân, khách hàng, tổng tiền và danh sách món
+			// Tạo đối tượng hóa đơn
 			int orderNumber = (int) (System.currentTimeMillis() % 100000);
 			String orderType = "Tại quán";
 			String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -671,12 +638,11 @@ public class MainFrame extends JFrame {
 					orderDetails
 			);
 
-			// 3. Gửi lệnh qua Socket: Response res = SocketClient.getInstance().sendRequest(new Request("CREATE_INVOICE", invoiceDTO));
+			// Gửi yêu cầu tạo hóa đơn về Server
 			try {
 				Response res = SocketClient.getInstance().sendRequest(new Request("CREATE_INVOICE", invoiceDTO));
 				if (res != null && res.success()) {
 					JOptionPane.showMessageDialog(this, "Thanh toán và lưu hóa đơn thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-					// 4. Nếu res.success(): Báo thành công và làm sạch giỏ hàng đón đơn tiếp theo!
 					cartItems.clear();
 					currentCustomer = null;
 					txtCustomerPhone.setText("");
@@ -693,9 +659,7 @@ public class MainFrame extends JFrame {
 		}
 	}
 
-	/**
-	 * Xử lý sự kiện đăng xuất: Đóng MainFrame và mở lại LoginFrame
-	 */
+	// Đăng xuất và quay lại màn hình Login
 	private void handleLogout() {
 		int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn đăng xuất?", "Xác nhận đăng xuất", JOptionPane.YES_NO_OPTION);
 		if (confirm == JOptionPane.YES_OPTION) {
@@ -706,7 +670,6 @@ public class MainFrame extends JFrame {
 
 	public static void main(String[] args) {
 		FlatLightLaf.setup();
-		// Tài khoản mẫu để chạy thử giao diện trực tiếp
 		AccountDTO testUser = new AccountDTO(1, "admin", "Nguyễn Hoàng Thái Bình", "ADMIN", "0909123456", true);
 		new MainFrame(testUser).setVisible(true);
 	}

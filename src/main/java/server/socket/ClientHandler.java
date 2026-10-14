@@ -96,6 +96,40 @@ public class ClientHandler implements Runnable{
 				return new Response(true, "Thành công", invoice);
 			return new Response(false, "Thất bại", null);
 		}
+		case "GET_DAILY_REVENUE": {
+			String date = (String) req.data();
+			double rev = invoiceServiceImpl.getDailyRevenue(date);
+			return new Response(true, "Thành công", rev);
+		}
+		case "GET_MONTHLY_REVENUE": {
+			int[] my = (int[]) req.data();
+			double rev = invoiceServiceImpl.getMonthlyRevenue(my[0], my[1]);
+			return new Response(true, "Thành công", rev);
+		}
+		case "GET_ALL_INVOICES": {
+			List<InvoiceDTO> list = invoiceServiceImpl.getAll();
+			return new Response(true, "Thành công", list);
+		}
+		case "ADD_ITEM": {
+			ItemDTO dto = (ItemDTO) req.data();
+			boolean ok = itemServiceImpl.add(dto);
+			return new Response(ok, ok ? "Thêm món thành công" : "Thêm món thất bại", ok);
+		}
+		case "UPDATE_ITEM": {
+			ItemDTO dto = (ItemDTO) req.data();
+			boolean ok = itemServiceImpl.update(dto);
+			return new Response(ok, ok ? "Cập nhật món thành công" : "Cập nhật món thất bại", ok);
+		}
+		case "DELETE_ITEM": {
+			int id = (int) req.data();
+			boolean ok = itemServiceImpl.delete(id);
+			return new Response(ok, ok ? "Xóa món thành công" : "Xóa món thất bại", ok);
+		}
+		case "ADD_CATEGORY": {
+			CategoryDTO dto = (CategoryDTO) req.data();
+			boolean ok = categoryServiceImpl.add(dto);
+			return new Response(ok, ok ? "Thêm danh mục thành công" : "Thêm danh mục thất bại", ok);
+		}
 		default:
 			return new Response(false, "Yêu cầu không hợp lệ: " + req.action(), null);
 		}
