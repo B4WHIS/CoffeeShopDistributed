@@ -48,6 +48,7 @@ public class ClientHandler implements Runnable{
 				out.flush();
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			try {
 				socket.close();
 			} catch (IOException e1) {

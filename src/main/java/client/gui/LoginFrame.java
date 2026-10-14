@@ -17,6 +17,7 @@ import javax.swing.SwingConstants;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import client.network.SocketClient;
+import common.dto.AccountDTO;
 import common.network.Request;
 import common.network.Response;
 
@@ -74,6 +75,8 @@ public class LoginFrame extends JFrame {
 		Response res = SocketClient.getInstance().sendRequest(new Request("LOGIN", creds));
 		if(res != null && res.success()) {
 			JOptionPane.showMessageDialog(this, "Đăng nhập thành công!");
+			AccountDTO user = (AccountDTO) res.data();
+			new MainFrame(user).setVisible(true);
 			this.dispose();
 		}else {
 			JOptionPane.showMessageDialog(this, res != null ? res.message() : "Lỗi kết nối", "Lỗi", JOptionPane.ERROR_MESSAGE);

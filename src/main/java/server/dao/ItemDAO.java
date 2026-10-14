@@ -70,7 +70,7 @@ public boolean add(Item item) {
 	
 	public List<Item> findAll(){
 		try (EntityManager em = JPAUtil.getEntityManager()) {
-			return em.createQuery("SELECT i FROM Item i", Item.class).getResultList();
+			return em.createQuery("SELECT i FROM Item i LEFT JOIN FETCH i.category", Item.class).getResultList();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

@@ -39,7 +39,7 @@ public class Item implements Serializable {
 	private double price;
 	private boolean isAvailable;
 	
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "category_id")
 	private Category category;
 }
